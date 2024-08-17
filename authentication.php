@@ -58,8 +58,7 @@ function authenticateUser($user,$password, $connection){
             exit;
             }
             else{
-                var_dump(password_verify($password, $storedHash));
-                // header("location: login.php?error='incorrect password'");
+                header("location: login.php?error='incorrect password'");
                 exit;
             }
 }

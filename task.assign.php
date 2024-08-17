@@ -1,15 +1,12 @@
 <?php
-include 'model/dbconnection.php';
+include_once 'model/dbconnection.php';
+$connection = connectDatabase();
+function assignTask($username, $taskId, $connection){
 
-$dbInstance = new DbConnection;
-define ("CONNECTION",  $dbInstance->connectDatabase());
-function assignTask($connection = CONNECTION,$username, $taskId){
-
-    $getUserId = "SELECT user_id from user_profile where username = $username ";
+    $getUserId = "SELECT user_id from user_profile where username = '$username' ";
     
      try{
-        $userId = $connection->query($getUserId)->fetch_assoc()['id'];
-
+        $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
         $assignTaskQuery = "INSERT INTO task_assignment (task_id, assignee_id) VALUES($taskId, $userId);";
      
         $result= $connection->query($assignTaskQuery);
@@ -17,33 +14,50 @@ function assignTask($connection = CONNECTION,$username, $taskId){
         exit;
     }
     catch(mysqli_sql_exception $exception){
-        //PROBLEM: how does the developer know which error occured
-        //SOLUTION: save the error in logs file for debugging purpose
-        var_dump($exception);
-        // header('location: index.php?error=please try again later');
+        header('location: index.php?error=please try again later');
     }
 }
-
-
-function deleteAssignedMember(){
-    $deleteQuery = "DELETE FROM task_assignment where (task_id = ? AND assignee_id = ?)";
+function deleteAssignedMember($username, $taskId, $connection){
+    $taskId = (int) $taskId;
+    $getUserId = "select user_id from user_profile where username = '$username';";
+    $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
+    $deleteQuery = "DELETE FROM task_assignment where (task_id = $taskId AND assignee_id = $userId)";
+    $result= $connection->query($deleteQuery);
+    if($result ==true){
+        header("location: index.php?success=removed assignee successfully");
+    }
 }
-function editAssignedMember($taskId, $userId){
+function editAssignedMember($taskId, $username, $connection){
+    $taskId = (int) $taskId;
+    $getUserId = "select user_id from user_profile where username = '$username';";
+    $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
     $editAssignedMember ="UPDATE task_assignment SET assignee_id=$userId where task_id=$taskId;";
+    $result = $connection->query($editAssignedMember);
+    header("location: index.php?success=updated successfully");
 }
-
-function getAssignedMembers($taskId){
-    $getAssignedMemberByTask = "SELECT assignee_id FROM task_assignment where task_id=$taskId";
-    $result = CONNECTION->query($getAssignedMemberByTask);
-    $assignedMemberByTask = mysqli_fetch_all($result, MYSQLI_ASSOC);
+function getAssignedMembers($taskId, $connection){
+    $getAssignedMemberByTask = "SELECT username from user_profile WHERE user_id=(SELECT assignee_id FROM task_assignment where task_id=$taskId)";
+    $result = $connection->query($getAssignedMemberByTask);
+    $assignedMemberByTask = $result->fetch_assoc();
     return $assignedMemberByTask;
+}
+
+if ($_SERVER['REQUEST_METHOD']=='POST'){
+    $username = $_POST['member'];
+    $taskId = $_POST['task_id'];
+    if(isset($_POST['method']) && $_POST['method']=='update'){
+        editAssignedMember($taskId, $username, $connection);
+    }
+    else if (isset($_POST['method']) && $_POST['method']=='assign'){
+        assignTask($username, $taskId, $connection);
+    }
+    else if (isset($_POST['method']) && $_POST['method']=='delete'){
+
+        deleteAssignedMember($username, $taskId, $connection);
+    }
 
 }
 
-if($_SERVER['REQUEST_METHOD']=='post'){
-    var_dump($_POST);
-    assignTask($username, $taskId);
-}
 // implement filters for  filtering 
 // read database
 // how it works

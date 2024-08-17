@@ -36,7 +36,6 @@ function validateDate($date){
        exit();
     }
     else{
-        // var_dump(date_format($validDate, 'Y-m-d'));
         return $date;
     }
 }

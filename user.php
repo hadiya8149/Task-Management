@@ -1,5 +1,5 @@
 <?php 
-function getAllUsernames($connection=CONNECTION){
+function getAllUsernames($connection){
     $getUsernameQuery = "SELECT username from user_profile";
     $result = $connection->query($getUsernameQuery);
     $allUsernames = mysqli_fetch_all($result, MYSQLI_ASSOC);

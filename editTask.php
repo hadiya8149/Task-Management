@@ -1,7 +1,9 @@
 <?php 
+include_once 'model/dbconnection.php';
+$connection = connectDatabase();
 $taskId = $_GET['id'];
 include 'task.php';
-$taskData = getTaskById($taskId);
+$taskData = getTaskById($taskId, $connection);
 $title = $taskData['title'];
 $description = $taskData['description'];
 ?>
