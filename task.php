@@ -1,7 +1,5 @@
 <?php 
-include_once 'model/dbconnection.php';
-$connection = connectDatabase();
-function getAllTasks($connection){
+function getAllTasks($connection=CONNECTION){
     $getAllTasksQuery = "SELECT * FROM task;";
     $result = $connection->query($getAllTasksQuery);
     $allTasks = mysqli_fetch_all($result, MYSQLI_ASSOC);

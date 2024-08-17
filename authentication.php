@@ -2,7 +2,6 @@
 if(isset($_SESSION['email'])){
     exit();
 }
-
 include 'model/dbconnection.php';
 $connection = new DbConnection;
 $conn = $connection->connectDatabase();

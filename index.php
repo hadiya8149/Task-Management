@@ -4,9 +4,10 @@ require_once 'model/dbconnection.php';
 include 'task.php';
 include 'user.php';
 include 'task.assign.php';
-$connection = connectDatabase();
-$allUsernames = getAllUsernames($connection);
-function getAssignedTaskByUserId($username, $connection){
+$dbInstance = new DbConnection;
+define('CONNECTION', $dbInstance->connectDatabase());
+$allUsernames = getAllUsernames();
+function getAssignedTaskByUserId($username, $connection=CONNECTION){
     $getUserId = "select user_id from user_profile where username = '$username';";
     $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
     // join with 
@@ -17,8 +18,6 @@ function getAssignedTaskByUserId($username, $connection){
 
 }
 //TODO: to complete the task table we can join and group by task id to return assigned members of the task
-
-
 ?>
 <html>
     <head>
@@ -54,7 +53,7 @@ function getAssignedTaskByUserId($username, $connection){
         <input type='submit' >
     </form>
 </div>
-<div > <input type="text" placeholder="Filter table" id="filterUsername"></div>
+<div > <input type="text" placeholder="Search table" id="filterTask"></div>
     <table id="myTable">
         <thead>
             <tr>
@@ -71,7 +70,7 @@ function getAssignedTaskByUserId($username, $connection){
         <tbody>
           
         <?php 
-        $tasks = getAllTasks($connection);
+        $tasks = getAllTasks();
         foreach ($tasks as $row): array_map('htmlentities', $row); ?>
     <tr>
       <td>
@@ -90,7 +89,7 @@ function getAssignedTaskByUserId($username, $connection){
 
         <form id='assignMember' action='task.assign.php' method='post'>
            <?php
-           $assignedMember = getAssignedMembers($id, $connection);
+           $assignedMember = getAssignedMembers($id, CONNECTION);
            ?>
                 <select style="width:100px" name="member">
                     <option></option>
@@ -143,24 +142,56 @@ function getAssignedTaskByUserId($username, $connection){
 </select>
 
 </form>
-<!-- fix it -->
-<?php getAssignedTaskByUserId('hadiya8149', $connection);?>
-<!-- TODO: call function   -->
-<div>
-
-</div>
-</div>
-</div>
+<div class="userTasks">
+<ul id="list_of_user">
 <script>
 $(document).ready(function(){
-  $("#filterUsername").on("keyup", function() {
+  $("#filterTask").on("keyup", function() {
     var value = $(this).val().toLowerCase();
     $("#myTable tr").filter(function() {
       $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
     });
+
   });
+  if($("#showTaskByUser option:selected").length>0){
+    var selected_option = $("#showTaskByUser").val()
+    var settings = {
+                    "url": "http://localhost/100phpProjects/taskmanagement/viewTaskByUserId.php",
+                    "method": "POST",
+                    "timeout": 0,
+                    "headers": {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    "data": {
+                        "username": selected_option
+                    }
+                    };
+
+    $.ajax(settings).done(function (response) {
+        var assignedTasksToUser =response;
+        var assignedTasksArray = JSON.parse(assignedTasksToUser);
+        console.log(assignedTasksArray);
+        var listElement = document.getElementById("list_of_user");
+        for(const key in assignedTasksArray){
+            console.log(assignedTasksArray[key]);
+            var listNode = document.createElement('li');
+            listElement.appendChild(listNode);
+            listNode.innerHTML=assignedTasksArray[key];  
+
+        }
+
+        // function myFunction(item){
+        //     console.log(item);
+        // }
+        // assignedTasksToUser.forEach(myFunction);
+    });
+    }
 });
 </script>
+</ul>
+</div>
+</div>
+</div>
 
 </body>
 

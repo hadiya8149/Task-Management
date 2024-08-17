@@ -1,7 +1,9 @@
 <?php
 include_once 'model/dbconnection.php';
-$connection = connectDatabase();
-function assignTask($username, $taskId, $connection){
+$dbInstance = new DbConnection();
+define('DBCONNECTION', $dbInstance->connectDatabase());
+// PROBLEM constant connection already defined;
+function assignTask($username, $taskId, $connection=DBCONNECTION){
 
     $getUserId = "SELECT user_id from user_profile where username = '$username' ";
     
@@ -17,7 +19,7 @@ function assignTask($username, $taskId, $connection){
         header('location: index.php?error=please try again later');
     }
 }
-function deleteAssignedMember($username, $taskId, $connection){
+function deleteAssignedMember($username, $taskId, $connection=DBCONNECTION){
     $taskId = (int) $taskId;
     $getUserId = "select user_id from user_profile where username = '$username';";
     $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
@@ -27,7 +29,7 @@ function deleteAssignedMember($username, $taskId, $connection){
         header("location: index.php?success=removed assignee successfully");
     }
 }
-function editAssignedMember($taskId, $username, $connection){
+function editAssignedMember($taskId, $username, $connection=DBCONNECTION){
     $taskId = (int) $taskId;
     $getUserId = "select user_id from user_profile where username = '$username';";
     $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
@@ -35,7 +37,7 @@ function editAssignedMember($taskId, $username, $connection){
     $result = $connection->query($editAssignedMember);
     header("location: index.php?success=updated successfully");
 }
-function getAssignedMembers($taskId, $connection){
+function getAssignedMembers($taskId, $connection=DBCONNECTION){
     $getAssignedMemberByTask = "SELECT username from user_profile WHERE user_id=(SELECT assignee_id FROM task_assignment where task_id=$taskId)";
     $result = $connection->query($getAssignedMemberByTask);
     $assignedMemberByTask = $result->fetch_assoc();
@@ -46,14 +48,14 @@ if ($_SERVER['REQUEST_METHOD']=='POST'){
     $username = $_POST['member'];
     $taskId = $_POST['task_id'];
     if(isset($_POST['method']) && $_POST['method']=='update'){
-        editAssignedMember($taskId, $username, $connection);
+        editAssignedMember($taskId, $username);
     }
     else if (isset($_POST['method']) && $_POST['method']=='assign'){
-        assignTask($username, $taskId, $connection);
+        assignTask($username, $taskId);
     }
     else if (isset($_POST['method']) && $_POST['method']=='delete'){
 
-        deleteAssignedMember($username, $taskId, $connection);
+        deleteAssignedMember($username, $taskId);
     }
 
 }

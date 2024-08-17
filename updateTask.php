@@ -1,7 +1,8 @@
 <?php
 include_once 'model/dbconnection.php';
-$connection = connectDatabase();
-function updateTask($taskId, $title, $description, $status, $tag, $connection){
+$dbInstance = new DbConnection;
+define('CONNECTION', $dbInstance->connectDatabase());
+function updateTask($taskId, $title, $description, $status, $tag, $connection=CONNECTION){
     $updateTaskQuery = "UPDATE task set `title`='$title', `description`='$description', `status`='$status', `tag`='$tag' where id = $taskId";
     try{
         $connection->query($updateTaskQuery);
@@ -16,4 +17,4 @@ $title = $_POST['title'];
 $description  = $_POST['description'];
 $status = $_POST['status'];
 $tag = $_POST['tag'];
-updateTask($taskId, $title, $description, $status, $tag, $connection);
+updateTask($taskId, $title, $description, $status, $tag);
