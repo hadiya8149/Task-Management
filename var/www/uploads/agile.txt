@@ -1,0 +1,25 @@
+waterfall model takes too much time to develop 
+monolithic application has a single point of failure.
+In agile you can ship smaller chunks of code to the client.
+Agile is a chain of rapid development and deployment.In agile we plan develop and deploy .
+plan -> design -> develop -> test -> deploy -> review.
+agile 4 rules
+
+individuals and interactions over processes and tools
+working software over comprehensive documentation
+customer collaboration over contract negotiation
+responding to change over following a plan
+12 principles
+satisfy the customer
+welcome changing requirements even late ind evelopment
+deliver working software frequently
+
+daily meeting between devlopers and business stakeholders
+build projects around motivated individual, supportive environment
+face to face conversation
+working software is the primary measure of progress.
+sustainable development
+technical excellence and good design
+the art of maximizing the amount of work not done is essential
+self organizing teams
+reflect on how to become more effectively 

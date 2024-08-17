@@ -17,7 +17,7 @@ $allUsernames = getAllUsernames();
 <div>
 <div>
     <h2>Create Task</h2>
-    <form action='task.php' method='post'>
+    <form enctype="multipart/form-data" action='task.php' method='post'>
         <input type='text' name='title' placeholder='title'>
         <textarea name='description' placeholder="enter description"></textarea>
         <select name='status'>
@@ -36,7 +36,12 @@ $allUsernames = getAllUsernames();
             <option value="low">priority: low</option>
             <option value="enhancement">type: enhancement</option>
         </select>
-        <input type='submit' >
+    
+ <span>Allowed type is docx and txt</span>
+     
+    <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
+   <input name="document" type="file" />
+    <button type="submit" name="create-task">Submit</button>
     </form>
 </div>
 <div > 
