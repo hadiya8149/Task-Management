@@ -1,9 +1,9 @@
 <?php 
 include_once 'model/dbconnection.php';
+include 'task.php';
 $dbInstance = new DbConnection;
 define('CONNECTION', $dbInstance->connectDatabase());
 $taskId = $_GET['id'];
-include 'task.php';
 $taskData = getTaskById($taskId, CONNECTION);
 $title = $taskData['title'];
 $description = $taskData['description'];

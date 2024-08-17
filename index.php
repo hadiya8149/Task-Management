@@ -1,23 +1,11 @@
 <?php 
 require_once 'model/dbconnection.php';
-
 include 'task.php';
 include 'user.php';
 include 'task.assign.php';
 $dbInstance = new DbConnection;
 define('CONNECTION', $dbInstance->connectDatabase());
 $allUsernames = getAllUsernames();
-function getAssignedTaskByUserId($username, $connection=CONNECTION){
-    $getUserId = "select user_id from user_profile where username = '$username';";
-    $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
-    // join with 
-    $sql = "select * from task_assignment join task on task_assignment.task_id=task.id where task_assignment.assignee_id=$userId;";
-    $result = $connection->query($sql);
-    $allTaskAssignedToUser  = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    var_dump($allTaskAssignedToUser);
-
-}
-//TODO: to complete the task table we can join and group by task id to return assigned members of the task
 ?>
 <html>
     <head>
@@ -27,9 +15,7 @@ function getAssignedTaskByUserId($username, $connection=CONNECTION){
 <body>
 <h1>Task Management System</h1>
 <div>
-
 <div>
-
     <h2>Create Task</h2>
     <form action='task.php' method='post'>
         <input type='text' name='title' placeholder='title'>
@@ -53,8 +39,9 @@ function getAssignedTaskByUserId($username, $connection=CONNECTION){
         <input type='submit' >
     </form>
 </div>
-<div > <input type="text" placeholder="Search table" id="filterTask"></div>
-    <table id="myTable">
+<div > 
+    <input type="text" placeholder="Search table" id="filterTask"></div>
+    <table id="allTasksTable">
         <thead>
             <tr>
                 <th></th>
@@ -71,11 +58,11 @@ function getAssignedTaskByUserId($username, $connection=CONNECTION){
           
         <?php 
         $tasks = getAllTasks();
-        foreach ($tasks as $row): array_map('htmlentities', $row); ?>
+        foreach ($tasks as $task): array_map('htmlentities', $task); ?>
     <tr>
       <td>
-        <?php echo implode('</td><td>', array_values($row));
-        $id = $row['id']; 
+        <?php echo implode('</td><td>', array_values($task));
+        $id = $task['id']; 
         ?>
         <td>
             <?php echo "<a href='editTask.php?id=$id'>Edit</a>";?>
@@ -130,65 +117,69 @@ function getAssignedTaskByUserId($username, $connection=CONNECTION){
 </table>
 <h3>View how many task a user has</h3>
 <div>
-    <form method="get" action="index.php">
 <select id="showTaskByUser" name="searchUser">
-
+<option ></option>
 <?php
+// render all usernames in a select option
  foreach($allUsernames  as $user){
     $username = $user['username'];
     echo "<option value=".$username.">".$username."</option>";
  }
 ?>
 </select>
-
-</form>
 <div class="userTasks">
-<ul id="list_of_user">
+<table id="noOfTaskUser">
 <script>
+
 $(document).ready(function(){
+    // bind keyup function on filterTask input field
   $("#filterTask").on("keyup", function() {
+    // filter task table by row values i.e task title, description,tag or status.
     var value = $(this).val().toLowerCase();
-    $("#myTable tr").filter(function() {
+    $("#allTasksTable tr").filter(function() {
       $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
     });
-
   });
-  if($("#showTaskByUser option:selected").length>0){
-    var selected_option = $("#showTaskByUser").val()
+  
+  var selectElement = document.getElementById('showTaskByUser');
+  // add event listener on change on select username to view how many task a user has?
+  selectElement.addEventListener('change', function handleChange(event){
+    var username = event.target.value;
+    var table = document.getElementById("noOfTaskUser");
+    table.innerHTML = '';
+    getAllTasksAssignedByUserId(username);
+  })
+
+  function getAllTasksAssignedByUserId(username){
+    // call viewTaskByUserId.php 
     var settings = {
                     "url": "http://localhost/100phpProjects/taskmanagement/viewTaskByUserId.php",
                     "method": "POST",
-                    "timeout": 0,
                     "headers": {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
                     "data": {
-                        "username": selected_option
+                        "username": username
                     }
                     };
-
     $.ajax(settings).done(function (response) {
         var assignedTasksToUser =response;
         var assignedTasksArray = JSON.parse(assignedTasksToUser);
-        console.log(assignedTasksArray);
-        var listElement = document.getElementById("list_of_user");
+        var table = document.getElementById("noOfTaskUser");
         for(const key in assignedTasksArray){
             console.log(assignedTasksArray[key]);
-            var listNode = document.createElement('li');
-            listElement.appendChild(listNode);
-            listNode.innerHTML=assignedTasksArray[key];  
-
+            var table_row = table.insertRow(0);
+            var row=Object.values(assignedTasksArray[key]);  
+            for(const index in row){
+                var cell = table_row.insertCell(index)
+                cell.innerHTML = row[index];
+            }
         }
-
-        // function myFunction(item){
-        //     console.log(item);
-        // }
-        // assignedTasksToUser.forEach(myFunction);
     });
     }
 });
 </script>
-</ul>
+</table>
 </div>
 </div>
 </div>
