@@ -3,6 +3,8 @@ include_once 'model/dbconnection.php';
 $dbInstance = new DbConnection;
 define('CONNECTION', $dbInstance->connectDatabase());
 function updateTask($taskId, $title, $description, $status, $tag,$filename, $connection=CONNECTION){
+    $filename = mysqli_real_escape_string($connection, $filename);
+
     $updateTaskQuery = "UPDATE task set `title`='$title', `description`='$description', `status`='$status', `tag`='$tag', `filename`='$filename' where id = $taskId";
     try{
         $connection->query($updateTaskQuery);
@@ -17,11 +19,8 @@ function documentValidation($documentName, $documentSize, $documentTemp, $docume
     if(empty($documentName)){
         header("location: editTask.php?error=Please select a file");
         exit;
-    }
-    var_dump($documentName, $documentSize, $documentTemp, $documentType);
-    
+    }    
     $file_info = new finfo(FILEINFO_MIME_TYPE);
-    var_dump($file_info);
     $allowedMimes = [
         'application/pdf',
         'application/msword',
@@ -33,21 +32,17 @@ function documentValidation($documentName, $documentSize, $documentTemp, $docume
         echo "file accepted";
     }
     $upload_max_size= 10*1024*1024;
-    $documentSize = (integer) $documentSize;
     if($documentSize>$upload_max_size){
         return "Document must not be larager than 10 mb";
     }
 
-    $destination_path = getcwd().DIRECTORY_SEPARATOR.'var/www/uploads/';
-    var_dump($destination_path);
+    $destination_path = getcwd().DIRECTORY_SEPARATOR.'var\www\uploads\\';
     $target_path = $destination_path . basename( $_FILES["update_document"]["name"]);
-    var_dump($target_path);
     if (move_uploaded_file($_FILES['update_document']['tmp_name'], $target_path)) {
         return $target_path;
     } 
     else {
-        // header("location: index.php?error=could not upload file");
-        var_dump($_FILES["update_document"]["error"]);
+        header("location: index.php?error=could not upload file");
         exit;
     }
     
@@ -64,10 +59,8 @@ if(isset($_POST['id']) && isset($_POST['title']) && isset($_POST['description'])
     $description  = $_POST['description'];
     $status = $_POST['status'];
     $tag = $_POST['tag'];
-    var_dump($_FILES['update_document']['name'], $_FILES['update_document']['size'], $_FILES['update_document']['tmp_name'], $_FILES['update_document']['type']);
 
     $filename = documentValidation($_FILES['update_document']['name'],$_FILES['update_document']['size'],$_FILES['update_document']['tmp_name'], $_FILES['update_document']['type']);
-    // $filename = str_replace('\\', '/', $filename);    
     updateTask($taskId, $title, $description, $status, $tag, $filename);
     
 }

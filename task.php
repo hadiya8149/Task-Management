@@ -55,9 +55,7 @@ if (isset($_POST['create-task'])){
     $description = $_POST['description'];
     $status = $_POST['status'];
     $tag = $_POST['tag'];
-    var_dump($_FILES);
     $filename = documentValidation($_FILES['document']['name'],$_FILES['document']['size'],$_FILES['document']['tmp_name'], $_FILES['document']['type']);
-    // $filename = str_replace('\\', '', $filename);
     
     createTask($title, $description, $status, $tag, $filename);
 }
