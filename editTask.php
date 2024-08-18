@@ -3,17 +3,20 @@ include_once 'model/dbconnection.php';
 include 'task.php';
 $dbInstance = new DbConnection;
 define('CONNECTION', $dbInstance->connectDatabase());
-$taskId = $_GET['id'];
-$taskData = getTaskById($taskId, CONNECTION);
-$title = $taskData['title'];
-$description = $taskData['description'];
+if($_SERVER['REQUEST_METHOD']=='GET'){
+    $taskId = $_GET['id'];
+    $taskData = getTaskById($taskId, CONNECTION);
+    $title = $taskData['title'];
+    $description = $taskData['description'];
+    
+}
 ?>
 <html>
 <head>
 <title>Edit  a task</title>
 </head>
 <body>
-<form  action="updateTask.php" id ='updateTask' method='post'>
+<form enctype="multipart/form-data" action="updateTask.php" id ='updateTask' method='post'>
 <input style="width: 200px;" name='title' type="text" value="<?php echo $title;?>">
 <input name='description'   value="<?php echo $description;?>"></input>
         <select name='status'>
@@ -32,7 +35,11 @@ $description = $taskData['description'];
             <option   <?php  echo $taskData['tag']=='low'?'selected':'' ?>value="low">priority: low</option>
             <option   <?php  echo $taskData['tag']=='enhancement'?'selected':'' ?>value="enhancement">type: enhancement</option>
         </select>
+
         <input type="hidden" name="id" value='<?php echo $taskId?>'>
+        <span>Allowed type is docx and txt</span>
+        <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
+        <input name="update_document" type="file" />
 <input type='submit'>
 
 </form>

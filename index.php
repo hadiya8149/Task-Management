@@ -6,6 +6,7 @@ include 'task.assign.php';
 $dbInstance = new DbConnection;
 define('CONNECTION', $dbInstance->connectDatabase());
 $allUsernames = getAllUsernames();
+
 ?>
 <html>
     <head>
@@ -38,13 +39,12 @@ $allUsernames = getAllUsernames();
         </select>
     
  <span>Allowed type is docx and txt</span>
-     
     <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
    <input name="document" type="file" />
     <button type="submit" name="create-task">Submit</button>
     </form>
 </div>
-<div > 
+<div> 
     <input type="text" placeholder="Search table" id="filterTask"></div>
     <table id="allTasksTable">
         <thead>
@@ -66,8 +66,20 @@ $allUsernames = getAllUsernames();
         foreach ($tasks as $task): array_map('htmlentities', $task); ?>
     <tr>
       <td>
-        <?php echo implode('</td><td>', array_values($task));
+        <?php 
         $id = $task['id']; 
+
+        $title = $task['title'];
+        $description = $task['description'];
+        $tag = $task['tag'];
+        $status = $task['status'];
+        $filename = $task['filename'];
+        echo "<td>$title</td>";
+        echo "<td>$description</td>";
+        echo "<td>$status</td>";
+        echo "<td>$tag</td>";
+        echo "<td ><a href=downloadFile.php?taskid=$id>Download file</a></td>";            
+
         ?>
         <td>
             <?php echo "<a href='editTask.php?id=$id'>Edit</a>";?>
@@ -188,7 +200,5 @@ $(document).ready(function(){
 </div>
 </div>
 </div>
-
 </body>
-
     </html>
