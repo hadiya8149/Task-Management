@@ -1,6 +1,9 @@
 <?php
 class DbConnection{
     protected $connection;
+        // public function _construct(){
+        //     $this->connection = connectDatabase();
+        // }
         public function connectDatabase(){
             $env = parse_ini_file(".env");
             $host = $env['HOST'];

@@ -11,14 +11,16 @@ function getAllTasks($connection=CONNECTION4){
 }
 function createTask($title, $description, $status, $tag,$filename, $connection=CONNECTION4){ // post request for create task
     $filename = mysqli_real_escape_string($connection, $filename);
-    $createTaskQuery = "INSERT INTO task (`title`, `description`, `status`, `tag`, `filename`) VALUES ('$title', '$description',' $status', '$tag', '$filename');";
-    try{
-        $result = $connection->query($createTaskQuery);
+    $createTaskQuery = $connection->prepare("INSERT INTO task (`title`, `description`, `status`, `tag`, `filename`) VALUES (?, ?,?, ?, ?);");
+    $createTaskQuery->bind_param('sssss',$title, $description, $status, $tag, $filename);
+    $createTaskQuery->execute();
+    $result = $createTaskQuery->get_result();
+    if($result){
         header("location: index.php?success=Created Task successfully");
     }
-    catch(mysqli_sql_exception $exception){
-        return $exception;
-    };
+    else{
+        header("location: index.php?error=could not create task. ");
+    }
 }
 function getTaskById($taskId, $connection=CONNECTION4){
     $getTaskByIdQuery  = "SELECT * FROM task where id=$taskId";
@@ -32,7 +34,6 @@ function documentValidation($documentName, $documentSize, $documentTemp, $docume
     }
     $file_info = new finfo(FILEINFO_MIME_TYPE);
     $mime_type = $file_info->file($documentTemp);
-    echo $mime_type!='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     if($mime_type!='application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
         header("location: index.php?erro=only docx file type is allowed");
         exit;

@@ -4,16 +4,20 @@ $dbInstance = new DbConnection();
 define('DBCONNECTION', $dbInstance->connectDatabase());
 // PROBLEM constant connection already defined;
 function assignTask($username, $taskId, $connection=DBCONNECTION){
-
-    $getUserId = "SELECT user_id from user_profile where username = '$username' ";
-    
      try{
-        $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
-        $assignTaskQuery = "INSERT INTO task_assignment (task_id, assignee_id) VALUES($taskId, $userId);";
-     
-        $result= $connection->query($assignTaskQuery);
-        header("location: index.php?success=task assigned");
-        exit;
+        $getUserId = $connection->prepare("SELECT user_id from user_profile where username = ? ");
+        $getUserId->bind_param('s', $username);
+        $getUserId->execute();
+        $getUserIdResult = $getUserId->get_result();
+        if($getUserIdResult){
+            $userId = $getUserIdResult->fetch_assoc()['user_id'];
+        }
+        $assignTaskQuery = $connection->prepare("INSERT INTO task_assignment (task_id, assignee_id) VALUES(?,?);");
+        $assignTaskQuery->bind_param('ii',$taskId, $userId);
+        $assignTaskQuery->execute();
+        $result = $assignTaskQuery->get_result();
+            header("location: index.php?success=task assigned");
+            exit;
     }
     catch(mysqli_sql_exception $exception){
         header('location: index.php?error=please try again later');
@@ -21,25 +25,40 @@ function assignTask($username, $taskId, $connection=DBCONNECTION){
 }
 function deleteAssignedMember($username, $taskId, $connection=DBCONNECTION){
     $taskId = (int) $taskId;
-    $getUserId = "select user_id from user_profile where username = '$username';";
-    $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
-    $deleteQuery = "DELETE FROM task_assignment where (task_id = $taskId AND assignee_id = $userId)";
-    $result= $connection->query($deleteQuery);
-    if($result ==true){
-        header("location: index.php?success=removed assignee successfully");
+    
+    $getUserId = $connection->prepare("select user_id from user_profile where username = ?;");
+    $getUserId->bind_param('s', $username);
+    $getUserId->execute();
+    $getUserIdResult = $getUserId->get_result();
+    if($getUserIdResult){
+        $userId = $getUserIdResult->fetch_assoc()['user_id'];
+        $deleteQuery = $connection->prepare("DELETE FROM task_assignment where (task_id = ? AND assignee_id = ?)");
+        $deleteQuery->bind_param('ii', $taskId, $userId);
+        $deleteQuery->execute();
+        $result =$deleteQuery->get_result();
+        header("location: index.php?success=removed assignee successfully");   
     }
 }
 function editAssignedMember($taskId, $username, $connection=DBCONNECTION){
     $taskId = (int) $taskId;
-    $getUserId = "select user_id from user_profile where username = '$username';";
-    $userId = $connection->query($getUserId)->fetch_assoc()['user_id'];
-    $editAssignedMember ="UPDATE task_assignment SET assignee_id=$userId where task_id=$taskId;";
-    $result = $connection->query($editAssignedMember);
+    $getUserId = $connection->prepare("select user_id from user_profile where username = ?;");
+    $getUserId->bind_param('s', $username);
+    $getUserId->execute();
+    $getUserIdResult = $getUserId->get_result();
+    $userId = $getUserIdResult->fetch_assoc()['user_id'];
+
+    $editAssignedMember = $connection->prepare("UPDATE task_assignment SET assignee_id=? where task_id=?;");
+    $editAssignedMember->bind_param('ii',$userId, $taskId);
+    $editAssignedMember->execute();
+    $result = $editAssignedMember->get_result();
     header("location: index.php?success=updated successfully");
 }
 function getAssignedMembers($taskId, $connection=DBCONNECTION){
-    $getAssignedMemberByTask = "SELECT username from user_profile WHERE user_id=(SELECT assignee_id FROM task_assignment where task_id=$taskId)";
-    $result = $connection->query($getAssignedMemberByTask);
+    $getAssignedMemberByTask =$connection->prepare("SELECT username from user_profile WHERE user_id=(SELECT assignee_id FROM task_assignment where task_id=?)");
+    $getAssignedMemberByTask->bind_param('i', $taskId);
+    $getAssignedMemberByTask->execute();
+
+    $result = $getAssignedMemberByTask->get_result();
     $assignedMemberByTask = $result->fetch_assoc();
     return $assignedMemberByTask;
 }

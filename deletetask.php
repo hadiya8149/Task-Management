@@ -3,9 +3,12 @@ include 'model/dbconnection.php';
 $dbInstance = new DbConnection;
 define('CONNECTION', $dbInstance->connectDatabase());
 function deleteTask($taskId){ // delete request for delete task
-    $deleteTaskQuery = "DELETE FROM task where id =$taskId;";
+    $deleteTaskQuery = CONNECTION->prepare("DELETE FROM task where id =?;");
+    $deleteTaskQuery->bind_param('i', $taskId);
+
     try{
-        CONNECTION->query($deleteTaskQuery);
+        $deleteTaskQuery->execute();
+        $result = $deleteTaskQuery->get_result();
         header("location: index.php?success=task deleted successfully");
 
     }

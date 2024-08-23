@@ -1,4 +1,5 @@
 <?php 
+// session_start();
 if(isset($_SESSION['email'])){
     exit();
 }
@@ -6,7 +7,6 @@ include 'model/dbconnection.php';
 $connection = new DbConnection;
 $conn = $connection->connectDatabase();
 function validateForm($email, $password){
-
     if((isset($email) && isset($password))){
         $email = htmlspecialchars($email);
         if(empty($email)){
@@ -30,9 +30,10 @@ function validateForm($email, $password){
    }
 
 function getUser($email, $password, $connection){
-    $query = "SELECT * FROM user where email='$email';";
-    $result = $connection->query($query);
-
+    $query = $connection->prepare("SELECT * FROM user where email=?;");
+    $query->bind_param('s', $email);
+    $query->execute();
+    $result = $query->get_result();
     if($result->num_rows==0){
 
         header("location: login.php?error=Account not found. Please signup first");

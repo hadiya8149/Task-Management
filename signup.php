@@ -2,10 +2,10 @@
 session_start();
 if(isset($_SESSION['email'])){
     header("location: home.php");
-    exit();
+    exit;
 }
 include 'model/dbconnection.php';
-$connection = new DbConnection;
+$connection = new DbConnection();
 $conn = $connection->connectDatabase();
 function validate($data){
     $data = trim($data);
@@ -17,13 +17,13 @@ function formValidation(){
     if(isset($_POST['email']) && isset($_POST['password'])&& isset($_POST['address']) && isset($_POST['cnic'])&&isset($_POST['dateofbirth'])&&isset($_POST['gender'])&&isset($_POST['fname']) && isset($_POST['lname']) && isset($_POST['confirm-password'])){
     
         if(empty($email) || empty($password) || empty($confirmPassword)){
-            header("location: register.php?error=email or password is empty");
-            exit();
+            header("location: signup.php?error=email or password is empty");
+            exit;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            header("location: register.php?error=invalid email format");
-            exit();
+            header("location: signup.php?error=invalid email format");
+            exit;
         }
         validatePassword($password, $confirmPassword);
 
@@ -32,8 +32,8 @@ function formValidation(){
 function validateDate($date){
     $validDate = date_create_from_format('Y-m-d', $date);
     if(!$validDate){
-       header("location: register.php?error=Invalid Date");
-       exit();
+       header("location: signup.php?error=Invalid Date");
+       exit;
     }
     else{
         return $date;
@@ -42,8 +42,8 @@ function validateDate($date){
 function validateCnic($cnic){
     $cnic =(string) $cnic; 
     if ((preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $cnic )or (strlen($cnic)!==13))){
-        header("location: register.php?error=Invalid CNIC number");
-        exit();
+        header("location: signup.php?error=Invalid CNIC number");
+        exit;
     }
     return $cnic;
 }
@@ -52,48 +52,62 @@ function validatePassword($password, $confirmPassword){
         return TRUE;
     }
     else{
-        header("location:register.php?error=Passwords do not match");
+        header("location:signup.php?error=Passwords do not match");
     }
 }
-function insertUserIntoDatabase($email, $password, $connection){
-    
+function insertUserIntoDatabase($email, $password, $fname, $lname, $address, $gender, $dateofbirth, $cnic,$username, $connection){
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $userExistQuery = "SELECT * FROM user where email='$email'";
-    $userExistResult = $connection->query($userExistQuery);
+    try{
+        $userExistQuery =$connection->prepare("SELECT * FROM user where email=?;");
+        $userExistQuery->bind_param('s', $email);
+        $userExistQuery->execute();
+        $userExistResult = $userExistQuery->get_result();
     if($userExistResult->num_rows>0){
-        header("location: register.php?error=Account already exists");
+        header("location: signup.php?error=Account already exists");
     }
     else{
-        $insertQuery = "INSERT INTO user (email,password) VALUES('$email' , '$hashedPassword');";
+        $insertQuery = $connection->prepare("INSERT INTO user (email,password) VALUES(?,?);");
+        $insertQuery->bind_param('ss', $email, $hashedPassword);
+        $insertQuery->execute();
+        $insertId = $insertQuery->insert_id;
         try{
-            if($connection->query($insertQuery)==TRUE){
-                $userId = $connection->insert_id;
-                echo $userId;
-                $insertUserProfileData = "INSERT INTO user_profile (user_id, first_name, last_name, `address`, gender, cnic, date_of_birth) VALUES($userId, '$fname',' $lname',' $address', '$gender',' $cnic','$dateofbirth');";
-             
-                if($connection->query($insertUserProfileData)==TRUE){
+            if($insertId){
+                $userId = $insertQuery->insert_id;
+            
+                $insertUserProfileData = $connection->prepare("INSERT INTO user_profile (user_id, first_name, last_name, `address`, gender, cnic, date_of_birth, username) VALUES(?, ?, ?, ?, ?, ?, ?, ?);");
+                $insertUserProfileData->bind_param('isssssss', $userId, $fname,$lname, $address, $gender, $cnic, $dateofbirth, $username);
+                $insertUserProfileData->execute();
+                $insertUserProfileDataResult = $insertUserProfileData->insert_id;
+                
+                if($insertUserProfileDataResult){
                     echo('<script>alert("signed up successfully")</script>');
                     header('location: login.php');
                     exit;
                 }
                 else{
-                    header("location: register.php?error=$userId");
+                    header("location: signup.php?error=Please try again later");
                     exit;
                 }
             }
 
         }
         catch(mysqli_sql_exception $exception){
-            header("location: register.php?error=Please try again later");
-            exit();
+            header("location: signup.php?error=Please try again later");
+            exit;
         }
+    }  
+    }
+    catch(mysqli_sql_exception $exception){
+        header("location: signup.php?error=Please try again later.");
+        exit;
     }
 }
 if($_SERVER['REQUEST_METHOD']=='POST'){
-    if(isset($_POST['email']) && isset($_POST['password'])&& isset($_POST['address']) && isset($_POST['cnic'])&&isset($_POST['dateofbirth'])&&isset($_POST['gender'])&&isset($_POST['fname']) && isset($_POST['lname']) && isset($_POST['confirm-password'])){
+    if(isset($_POST['email']) && isset($_POST['password'])&& isset($_POST['address']) && isset($_POST['cnic'])&&isset($_POST['dateofbirth'])&&isset($_POST['gender'])&&isset($_POST['fname']) && isset($_POST['lname'])  && isset($_POST['username']) && isset($_POST['confirm-password'])){
         $fname = validate($_POST['fname']);
         $lname = validate($_POST['lname']);
         $email = validate($_POST['email']);
+        $username = $_POST['username'];
         $address = validate($_POST['address']);
         $gender = validate($_POST['gender']);
         $dateofbirth = validateDate($_POST['dateofbirth']);
@@ -101,12 +115,12 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
         $password = $_POST['password'];
         $confirmPassword = $_POST['confirm-password'];
         validatePassword($password, $confirmPassword);
-        insertUserIntoDatabase($email,$password, $conn);
+        insertUserIntoDatabase($email,$password,$fname, $lname, $address,$gender, $dateofbirth,$cnic,$username, $conn);
     
     }
     else{
-        header("location : register.php?error=All fields are required!");
-        exit();
+        header("location : signup.php?error=All fields are required!");
+        exit;
     }
 }
 ?>
@@ -126,6 +140,7 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
    <input type='text' class='form-control' name='fname' placeholder="First Name" required>
     <input type='text' class='form-control' name='lname' placeholder="Last Name" required>
     <input type='email' class='form-control' name ='email' placeholder="Enter email" required>
+    <input type="text" class="form-control" name="username" placeholder="Enter username" required>
     <input type='address' class='form-control' name ='address' placeholder="Address" requried>
     <input type='number' class='form-control' name ='cnic' placeholder="Enter cnic without dashes" required>
     <input type='date' class='form-control' name='dateofbirth' placeholder='yyyy/mm/dd' required>

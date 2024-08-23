@@ -11,22 +11,24 @@ $allUsernames = getAllUsernames();
 <html>
     <head>
         <script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
- 
-    </head>
-<body>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    </head>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="./index.css">
+        <body>
 <h1>Task Management System</h1>
 <div>
 <div>
     <h2>Create Task</h2>
-    <form enctype="multipart/form-data" action='task.php' method='post'>
-        <input type='text' name='title' placeholder='title'>
-        <textarea name='description' placeholder="enter description"></textarea>
-        <select name='status'>
-            <option value='TODO'>TODO</option>
-            <option value='IN PROGRESS'>IN PROGRESS</option>
-            <option value ='DONE'>DONE</option>
+    <form class="d-flex" enctype="multipart/form-data" action='task.php' method='post'>
+        <label htmlFor="title">Title</label>
+        <input  class="form-control m-3" type='text' name='title' placeholder='title'>
+        <textarea class="form-control m-3" name='description' placeholder="enter description"></textarea>
+        <select class="form-select m-3" name='status'>
+            <option class="text-primary" value='TODO'>TODO</option>
+            <option class="text-info" value='IN PROGRESS'>IN PROGRESS</option>
+            <option  class="text-success" value ='DONE'>DONE</option>
         </select>
-        <select name='tag'>
+        <select class="form-select m-3" name='tag'>
             <option value="bug">type: bug</option>
             <option  value="documentation">type: documentation</option>
             <option value="question">type: question</option>
@@ -40,13 +42,13 @@ $allUsernames = getAllUsernames();
     
  <span>Allowed type is docx and txt</span>
     <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
-   <input name="document" type="file" />
-    <button type="submit" name="create-task">Submit</button>
+   <input class="form-control m-3" name="document" type="file" />
+    <button type="submit" class="btn btn-primary m-3" name="create-task">Submit</button>
     </form>
 </div>
 <div> 
     <input type="text" placeholder="Search table" id="filterTask"></div>
-    <table id="allTasksTable">
+    <table class="table" id="allTasksTable">
         <thead>
             <tr>
                 <th></th>
@@ -112,7 +114,7 @@ $allUsernames = getAllUsernames();
                 <input type = "hidden" name ="method"  value="<?php echo isset($assignedMember)?'update':'assign'; ?>">
                 <input type="hidden" name='task_id' value="<?php echo $id?>">
                 <!-- add logic to add update and assign hidden values -->
-                <input type="submit" value=<?php echo isset($assignedMember)?'update':'assign' ?>>
+                <input type="submit" class='btn btn-info' value=<?php echo isset($assignedMember)?'update':'assign' ?>>
                 
             </td>
             
@@ -124,7 +126,7 @@ $allUsernames = getAllUsernames();
             <input type="hidden" name="task_id" value=<?php echo $id?>>
         <input type="hidden" name="member" value=<?php echo $assignedMember['username'] ?>>  
         <input type="hidden" name="method" value="delete">
-        <input type="submit"  value="Remove Assignee" ></form>
+        <input type="submit" class='btn btn-danger'  value="Remove Assignee" ></form>
                                                 </td>
     </tr>
 <?php endforeach; ?>

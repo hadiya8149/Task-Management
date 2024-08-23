@@ -1,6 +1,5 @@
 
 <?php 
-require 'vendor/autoload.php';
 include_once 'model/dbconnection.php';
 $dbInstance = new DbConnection;
 define('CONNECTION', $dbInstance->connectDatabase());
@@ -10,7 +9,6 @@ function downloadFile($id, $connection=CONNECTION){
 
     $filename = $connection->query($sql)->fetch_assoc()['filename'];
 
-    $phpWord = new \PhpOffice\PhpWord\PhpWord();
     header('Content-Description: File Transfer');
     
     header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
